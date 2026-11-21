@@ -1,4 +1,4 @@
-import { Extraction, Risk } from "../schema";
+import { Extraction, Risk, RiskSchema } from "../schema";
 import { validateUscc } from "../rules/uscc";
 import { validateSeal } from "../rules/chop";
 import { validateFapiao } from "../rules/fapiao";
@@ -22,10 +22,19 @@ export function runDeterministicChecks(extraction: Extraction): Risk[] {
   // La fapiao est optionnelle : cette règle ne s'exécute que si l'extraction
   // a trouvé au moins une information de facture.
   if (extraction.fapiao) {
-    risks.push(...validateFapiao(extraction.fapiao));
+    // Le calcul de TVA ne contient pas une citation à lui seul. On l'associe
+    // à la ligne du total réellement présente dans le document source.
+    const invoiceRisks = validateFapiao(extraction.fapiao);
+    const totalLine = extraction.clauses.find((clause) => /价税合计|含税合计|total/i.test(clause.text_zh));
+    risks.push(...invoiceRisks.map((risk) => risk.id === "fapiao-total-mismatch" && totalLine
+      ? { ...risk, quote_zh: totalLine.text_zh }
+      : risk));
   }
 
   // Cette validation finale protège le contrat partagé avant de transmettre
   // les risques aux étapes d'agrégation et d'affichage.
-  return risks;
+  // Seuls les risques dont la citation figure exactement dans le texte
+  // passent au rapport. Les erreurs calculées sans citation sont omises.
+  return risks.filter((risk) => extraction.documentText.includes(risk.quote_zh))
+    .map((risk) => RiskSchema.parse(risk));
 }

@@ -43,8 +43,7 @@ export async function analyzeClauses(extraction: Extraction): Promise<Risk[]> {
   // On expose le message d'erreur du fournisseur pour faciliter le diagnostic,
   // sans jamais révéler la clé API.
   if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`OpenAI-Next request failed (${response.status}): ${details}`);
+    throw new Error(`OpenAI-Next analysis failed (HTTP ${response.status}).`);
   }
 
   const payload = await response.json() as OpenAIChatResponse;

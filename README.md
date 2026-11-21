@@ -15,6 +15,17 @@ Le contexte complet du projet est dans `contexte.md` (à ajouter au dépôt par 
 L'API est exécutée localement par Next.js. La clé OpenAI-Next reste dans
 `.env.local` et n'est jamais envoyée au navigateur ni ajoutée à Git.
 
+Pour la démonstration, cliquer sur **Start Demo**. Les quatre scénarios sont
+des résultats sauvegardés et fonctionnent immédiatement, sans clé ni réseau.
+**Reset Demo** restaure l'écran initial. Le bouton de fallback sous la saisie
+recharge le scénario Supply Contract si l'analyse en direct échoue.
+
+Les photos et captures sont transcrites par le modèle vision configuré dans
+`.env.local` ; les résultats dépendront de la lisibilité de l'image et de la
+disponibilité du fournisseur. Le company check est explicitement une
+**Mock integration** avec **Demo data**, jamais une consultation officielle.
+Le déroulé filmé se trouve dans [docs/DEMO.md](docs/DEMO.md).
+
 ## Structure du dépôt
 
 | Dossier / fichier | Rôle |

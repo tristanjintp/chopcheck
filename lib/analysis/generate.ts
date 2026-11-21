@@ -51,8 +51,7 @@ Do not invent facts or legal references.`,
 
   // Une erreur fournisseur doit être remontée clairement sans exposer la clé.
   if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`OpenAI-Next request failed (${response.status}): ${details}`);
+    throw new Error(`OpenAI-Next generation failed (HTTP ${response.status}).`);
   }
 
   const payload = await response.json() as OpenAIChatResponse;

@@ -67,19 +67,40 @@ function extractLabeledAmount(text: string, pattern: RegExp): number | undefined
 
 // Cette fonction sera appelée par la route API. Elle accepte le format envoyé
 // par l'utilisateur et choisit pour l'instant uniquement le chemin texte.
-export function extract(input: AnalyzeInput): Promise<Extraction> {
+export async function extract(input: AnalyzeInput): Promise<Extraction> {
   // On valide la requête avant de la traiter : il faut au moins du texte ou une image.
   const parsedInput = AnalyzeInputSchema.parse(input);
 
-  // L'OCR des images sera ajouté plus tard. Cette erreur évite de prétendre
-  // qu'une image a été lue alors que ce n'est pas encore le cas.
-  if (!parsedInput.text) {
-    throw new Error("Image extraction is not implemented yet");
-  }
+  if (parsedInput.text) return extractFromText(parsedInput.text);
+  // La photo est lue par le modèle vision via la même clé locale que l'analyse.
+  // Le texte retourné passe ensuite par la même extraction que le texte collé.
+  return extractFromText(await readImageText(parsedInput.imageBase64!));
+}
 
-  // Promise.resolve permet de garder une interface asynchrone compatible avec
-  // une future version qui appellera une API d'OCR ou un modèle IA.
-  return Promise.resolve(extractFromText(parsedInput.text));
+// Cette fonction demande une transcription fidèle des caractères visibles.
+// Un format data URL valide évite les URL distantes et les fichiers arbitraires.
+async function readImageText(dataUrl: string): Promise<string> {
+  if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(dataUrl)) {
+    throw new Error("Please upload a PNG, JPEG or WebP image.");
+  }
+  const apiKey = process.env.OPENAI_NEXT_API_KEY;
+  if (!apiKey) throw new Error("Local API key missing. Add OPENAI_NEXT_API_KEY to .env.local.");
+  const response = await fetch("https://api.openai-next.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: process.env.OPENAI_NEXT_MODEL || "claude-sonnet-4-5",
+      messages: [{ role: "user", content: [
+        { type: "text", text: "Transcribe every visible line of this Chinese commercial document faithfully. Return only the document text, preserving Chinese characters, numbers and line breaks. Do not infer missing text." },
+        { type: "image_url", image_url: { url: dataUrl } },
+      ] }],
+    }),
+  });
+  if (!response.ok) throw new Error(`Image transcription failed (HTTP ${response.status}).`);
+  const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+  const text = data.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error("No readable text found in the image.");
+  return text;
 }
 
 // Les mots-clés permettent d'estimer le type du document sans appeler l'IA.
@@ -108,6 +129,8 @@ function extractParties(text: string): Extraction["parties"] {
       parties.push({
         role: index === 0 ? "party_a" : "party_b",
         name: match[1].trim(),
+        uscc: text.match(/(?:统一社会信用代码|USCC)\s*[:：]?\s*([0-9A-HJ-NPQRTUWXY]{18})/i)?.[1],
+        sealName: index === 1 ? text.match(/(?:乙方公章|乙方盖章)\s*[:：]?\s*([^\n,，;；]+)/)?.[1]?.replace(/[。.]$/, "") : undefined,
       });
     }
   });
