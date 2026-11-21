@@ -1,0 +1,15 @@
+# Dépendances et builds
+node_modules/
+.next/
+out/
+build/
+coverage/
+.vercel/
+
+# Secrets : ne jamais committer
+.env
+.env.local
+.env.*.local
+
+# Système
+.DS_Store
