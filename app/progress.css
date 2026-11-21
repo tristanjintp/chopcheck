@@ -1,0 +1,7 @@
+/* Message visible dès qu'une image est chargée et pendant l'appel au modèle. */
+.upload-status{display:flex;align-items:center;gap:14px;color:#f2d59f;border-color:#997548}
+.upload-status strong{font-weight:600;line-height:1.4}
+.upload-status .button{margin-left:auto;white-space:nowrap}
+.spinner{display:inline-block;width:19px;height:19px;flex:none;border:3px solid #7c91a8;border-top-color:#f5ac54;border-radius:50%;animation:spin .8s linear infinite}
+.spinner.large{width:50px;height:50px;border-width:5px}
+@keyframes spin{to{transform:rotate(360deg)}}

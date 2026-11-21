@@ -2,6 +2,7 @@
 // Cela garantit que les données produites ici ont toujours la forme attendue
 // par les prochaines étapes de l'analyse.
 import { AnalyzeInput, AnalyzeInputSchema, Extraction, ExtractionSchema } from "../schema";
+import { requestModel } from "./model";
 
 // Cette fonction est le point d'entrée principal pour un document déjà converti
 // en texte. Elle orchestre toutes les petites fonctions d'extraction ci-dessous.
@@ -83,22 +84,10 @@ async function readImageText(dataUrl: string): Promise<string> {
   if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(dataUrl)) {
     throw new Error("Please upload a PNG, JPEG or WebP image.");
   }
-  const apiKey = process.env.OPENAI_NEXT_API_KEY;
-  if (!apiKey) throw new Error("Local API key missing. Add OPENAI_NEXT_API_KEY to .env.local.");
-  const response = await fetch("https://api.openai-next.com/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: process.env.OPENAI_NEXT_MODEL || "claude-sonnet-4-5",
-      messages: [{ role: "user", content: [
-        { type: "text", text: "Transcribe every visible line of this Chinese commercial document faithfully. Return only the document text, preserving Chinese characters, numbers and line breaks. Do not infer missing text." },
-        { type: "image_url", image_url: { url: dataUrl } },
-      ] }],
-    }),
-  });
-  if (!response.ok) throw new Error(`Image transcription failed (HTTP ${response.status}).`);
-  const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-  const text = data.choices?.[0]?.message?.content?.trim();
+  const text = (await requestModel([{ role: "user", content: [
+    { type: "text", text: "Transcribe every visible line of this Chinese commercial document faithfully. Return only the document text, preserving Chinese characters, numbers and line breaks. Do not infer missing text. If nothing is readable, return an empty string." },
+    { type: "image_url", image_url: { url: dataUrl } },
+  ] }])).trim();
   if (!text) throw new Error("No readable text found in the image.");
   return text;
 }

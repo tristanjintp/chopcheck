@@ -103,6 +103,7 @@ function buildKeyFacts(extraction: Extraction): KeyFacts {
 // Crée un résumé lisible sans demander une nouvelle réponse au modèle.
 function buildSummary(extraction: Extraction, risks: Risk[]): string[] {
   const summary: string[] = [];
+  summary.push(`Document type: ${extraction.docType}.`);
   if (extraction.parties.length > 0) {
     summary.push(`${extraction.parties.length} contracting party/parties identified.`);
   }

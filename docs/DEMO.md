@@ -1,45 +1,55 @@
-# ChopCheck — démo et vidéo
+# Démonstration et vidéo ChopCheck
 
-## Préparation locale
+## Lancement
 
-1. Dans `chopcheck`, lancer `npm install`, puis `npm run dev`.
-2. Ouvrir `http://localhost:3000` et mettre le navigateur en plein écran.
-3. Vérifier qu'aucun secret, terminal ou fichier `.env.local` n'est visible dans la capture.
-4. Cliquer sur **Reset Demo** avant chaque prise. Les scénarios n'utilisent aucun service externe.
+Dans le dossier chopcheck : `npm run dev`, puis ouvrir http://localhost:3000.
+Pour filmer la version de production : arrêter le serveur dev, lancer
+`npm run build` puis `npm run start`. Ne jamais exécuter dev et build en parallèle.
 
-Pour vérifier le build de production, arrêter `npm run dev` avant de lancer
-`npm run build` puis `npm run start`. Les deux serveurs écrivent dans `.next`
-et ne doivent pas tourner en parallèle pendant la vérification.
+Les images ne sont pas embarquées sur le site. Les cinq fichiers fictifs se
+trouvent dans `demo-documents/`. Les raccourcis de scénario restent un secours
+immédiat. Pour régénérer les PNG : `node scripts/create-demo-documents.cjs`.
+
+## Parcours vidéo de 60 à 90 secondes
+
+1. Accueil — présenter « Chinese documents. Clear decisions. » (0–10 s).
+2. Activer **Demo Mode**. Il ouvre un état propre (10–15 s).
+3. Choisir **Screenshot**, puis **Upload**.
+4. Sélectionner `demo-documents/wechat-conversation-tristan-fictional.png`.
+5. Le résultat enregistré **HIGH RISK** apparaît immédiatement (15–30 s).
+6. Cliquer **Payment to a personal account** : le texte chinois exact se surligne (30–45 s).
+7. Montrer l'explication en anglais, puis **Next steps** (45–55 s).
+8. Cliquer **Reply**, puis **Copy reply** et montrer « Copied! » (55–65 s).
+9. Montrer **Company check · Demo data**, puis **Try another scenario** (65–75 s).
+10. Conclure : « ChopCheck turns unfamiliar Chinese documents into a clear next move. »
+
+L'upload en Demo Mode est une simulation explicite : le nom du PNG fourni
+sélectionne le résultat enregistré, marqué **Demo / Fictional · saved analysis**.
+Ne pas renommer ni modifier ces fichiers pour ce parcours.
+Un upload normal et une capture collée utilisent le moteur réel et la clé locale.
+Les documents de démo ne sont jamais présentés comme une vérification officielle.
 
 ## Démo de 3 minutes
 
-- 0:00–0:25 — Présenter Tom et cliquer **Start Demo**.
-- 0:25–1:15 — Montrer **HIGH RISK**, cliquer le risque du sceau, lire la citation chinoise surlignée et l'explication anglaise.
-- 1:15–1:45 — Montrer les actions séquencées, cliquer **Copy reply**, puis le **Company check · Demo data**.
-- 1:45–2:10 — Cliquer **WeChat Chat** et expliquer « 原则上问题不大 ».
-- 2:10–2:40 — Cliquer **Fapiao** et rapprocher le vendeur, le compte et le calcul de taxe ; puis **Government Notice** et sa date limite.
-- 2:40–3:00 — Conclure sur le passage document → risque exact → action. Cliquer **Reset Demo**.
+- 0:00–0:30 : accueil, modes, upload de Tristan en Demo Mode.
+- 0:30–1:15 : compte personnel, citation exacte et formulation indirecte.
+- 1:15–1:45 : actions séquencées et copie de la réponse chinoise.
+- 1:45–2:15 : Supply Contract, sceau d'une autre société.
+- 2:15–2:40 : Fapiao, vendeur différent et calcul erroné.
+- 2:40–3:00 : Government Notice, date limite, puis retour à l'accueil.
 
-## Vidéo de 60 à 90 secondes : ordre des clics
+## Fallbacks et contrôle avant envoi
 
-1. **Reset Demo**, puis démarrer l'enregistrement sur l'écran d'accueil.
-2. Montrer le titre et cliquer **Start Demo**.
-3. Montrer **HIGH RISK** et la conclusion.
-4. Cliquer **Seal belongs to another company** ; montrer le surlignage exact du chinois.
-5. Lire brièvement l'explication en anglais et les trois actions.
-6. Descendre à **Reply in Chinese**, cliquer **Copy reply** et montrer « Copied! ».
-7. Montrer **Company check · Demo data**.
-8. Cliquer **WeChat Chat** et montrer la phrase « 原则上问题不大 ».
-9. Conclusion : “ChopCheck turns unfamiliar Chinese documents into a clear next move.”
+Les quatre cartes de l'accueil et les boutons de changement de scénario dans
+les résultats sont instantanés. Le scénario WeChat de l'accueil est celui de
+Tristan. **Original WeChat** conserve l'ancien scénario. **New analysis** ou
+le logo retourne à l'accueil ; Demo Mode reste actif jusqu'à désactivation.
 
-## Fallbacks et vérification
+Rejouer trois fois : accueil → Screenshot → Upload du PNG Tristan → risque
+du compte personnel → citation → Next steps → Copy reply → autre scénario.
+Contrôler que l'image est lisible, la citation est exacte, « Copied! » apparaît,
+et qu'aucun secret ni terminal sensible n'est visible.
 
-Chaque tuile de scénario est un fallback instantané. Si l'analyse d'une photo
-ou d'un texte échoue, cliquer directement la tuile voulue ou **Load instant
-Supply Contract fallback**. Il n'y a aucun appel externe dans le parcours vidéo.
-
-Avant l'envoi, rejouer trois fois depuis **Reset Demo** : Start Demo → risque
-du sceau → citation → actions → Copy reply → Company check → WeChat Chat.
-Contrôler la lisibilité, l'absence d'écran blanc, le bouton « Copied! » et
-l'absence de secret à l'écran. Ne pas présenter les données fictives comme des
-résultats de registre officiel.
+Contrôles automatisés : intégrité des cinq PNG, résultats complets, citations
+exactes, séparation mode réel/démo et trois répétitions des données du parcours.
+Les tests de données ne remplacent pas les trois répétitions visuelles.

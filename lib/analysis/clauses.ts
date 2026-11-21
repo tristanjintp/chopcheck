@@ -1,54 +1,17 @@
 import { Extraction, Risk, RiskSchema } from "../schema";
+import { requestModel } from "./model";
 
 // OpenAI-Next fournit une API compatible avec OpenAI Chat Completions.
 // La clé reste dans l'environnement serveur et ne doit jamais être préfixée
 // par NEXT_PUBLIC_, sinon elle serait envoyée au navigateur.
-const API_URL = "https://api.openai-next.com/v1/chat/completions";
-const DEFAULT_MODEL = "claude-sonnet-4-5";
 
 // Analyse les clauses avec le modèle choisi sur OpenAI-Next.
 export async function analyzeClauses(extraction: Extraction): Promise<Risk[]> {
-  const apiKey = process.env.OPENAI_NEXT_API_KEY;
-
-  // Une clé absente est une erreur de configuration, pas un problème du document.
-  if (!apiKey) {
-    throw new Error("OPENAI_NEXT_API_KEY is not configured");
-  }
-
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_NEXT_MODEL || DEFAULT_MODEL,
-      temperature: 0,
-      messages: [
-        {
-          role: "system",
-          content: buildSystemPrompt(extraction.documentText),
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            document: extraction.documentText,
-            clauses: extraction.clauses,
-          }),
-        },
-      ],
-    }),
-  });
-
-  // On expose le message d'erreur du fournisseur pour faciliter le diagnostic,
-  // sans jamais révéler la clé API.
-  if (!response.ok) {
-    throw new Error(`OpenAI-Next analysis failed (HTTP ${response.status}).`);
-  }
-
-  const payload = await response.json() as OpenAIChatResponse;
-  const content = payload.choices?.[0]?.message?.content;
-  if (!content) throw new Error("OpenAI-Next returned an empty response");
+  // Le client partagé tente le modèle configuré, puis le secours si nécessaire.
+  const content = await requestModel([
+    { role: "system", content: buildSystemPrompt(extraction.documentText) },
+    { role: "user", content: JSON.stringify({ document: extraction.documentText, clauses: extraction.clauses }) },
+  ]);
 
   return validateAiRisks(parseJsonResponse(content), extraction.documentText);
 }
@@ -60,6 +23,7 @@ function buildSystemPrompt(documentText: string): string {
 Return ONLY a JSON array. Each item must have exactly these fields:
 id, level (critical|warning|note), title, quote_zh, explanation, fix,
 source (always ai), legal_refs (always an empty array).
+Write title, explanation and fix in clear English. Only quote_zh stays in Chinese.
 quote_zh must be an exact substring of the document.
 Do not invent legal article references. If there is no clear risk, return [].
 Document:
@@ -98,8 +62,3 @@ function validateAiRisks(value: unknown, documentText: string): Risk[] {
     return [parsed.data];
   });
 }
-
-// Type local correspondant uniquement à la partie de réponse utilisée.
-type OpenAIChatResponse = {
-  choices?: Array<{ message?: { content?: string } }>;
-};

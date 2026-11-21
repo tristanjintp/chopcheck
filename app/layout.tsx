@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./progress.css";
 
 export const metadata: Metadata = {
   title: "ChopCheck",
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 
 // Layout commun à toutes les pages de l'application.
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="fr"><body>{children}</body></html>;
+  return <html lang="en"><body>{children}</body></html>;
 }

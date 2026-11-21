@@ -1,28 +1,11 @@
 import { Analysis, AnalysisSchema } from "../schema";
 import { AggregatedAnalysis } from "./aggregate";
-
-const API_URL = "https://api.openai-next.com/v1/chat/completions";
-const DEFAULT_MODEL = "claude-sonnet-4-5";
+import { requestModel } from "./model";
 
 // Ajoute l'explication humaine et la réponse chinoise au résultat agrégé.
 export async function generate(aggregated: AggregatedAnalysis): Promise<Analysis> {
-  const apiKey = process.env.OPENAI_NEXT_API_KEY;
-
-  // La génération utilise l'API uniquement côté serveur.
-  if (!apiKey) {
-    throw new Error("OPENAI_NEXT_API_KEY is not configured");
-  }
-
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_NEXT_MODEL || DEFAULT_MODEL,
-      temperature: 0.2,
-      messages: [
+  // La réponse finale suit le même repli que l'analyse des clauses.
+  const content = await requestModel([
         {
           role: "system",
           content: `You explain a Chinese commercial document to a non-lawyer.
@@ -45,18 +28,7 @@ Do not invent facts or legal references.`,
             actions: aggregated.actions,
           }),
         },
-      ],
-    }),
-  });
-
-  // Une erreur fournisseur doit être remontée clairement sans exposer la clé.
-  if (!response.ok) {
-    throw new Error(`OpenAI-Next generation failed (HTTP ${response.status}).`);
-  }
-
-  const payload = await response.json() as OpenAIChatResponse;
-  const content = payload.choices?.[0]?.message?.content;
-  if (!content) throw new Error("OpenAI-Next returned an empty response");
+  ], 0.2);
 
   // On lit la réponse JSON produite par le modèle.
   const generated = parseJsonResponse(content);
@@ -91,8 +63,4 @@ function parseJsonResponse(content: string): GeneratedText {
 type GeneratedText = {
   explanation: string;
   reply_zh: string;
-};
-
-type OpenAIChatResponse = {
-  choices?: Array<{ message?: { content?: string } }>;
 };
