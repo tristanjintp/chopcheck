@@ -8,8 +8,12 @@ Projet de hackathon « business in China » (Télécom Paris). Application web N
 
 Le contexte complet du projet est dans `contexte.md` (à ajouter au dépôt par l'équipe). L'architecture détaillée est dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-1. Copier `.env.example` en `.env.local` et renseigner `ANTHROPIC_API_KEY` (ne jamais committer ce fichier).
-2. Installer les dépendances et lancer le projet une fois le squelette Next.js initialisé (`npx create-next-app` à faire par la personne qui s'occupe de l'interface, voir la répartition ci-dessous).
+1. Copier `.env.example` en `.env.local` et renseigner `OPENAI_NEXT_API_KEY` (ne jamais committer ce fichier).
+2. Installer les dépendances : `npm install`.
+3. Lancer l'application localement : `npm run dev`, puis ouvrir `http://localhost:3000`.
+
+L'API est exécutée localement par Next.js. La clé OpenAI-Next reste dans
+`.env.local` et n'est jamais envoyée au navigateur ni ajoutée à Git.
 
 ## Structure du dépôt
 
